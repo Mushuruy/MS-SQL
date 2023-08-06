@@ -1,0 +1,106 @@
+-- 1. Вывести количество преподавателей 
+-- кафедры “Software Development”.
+
+SELECT COUNT(Teachers.Id) AS 'Количество преподавателей'
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+			  JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+			  JOIN Departments ON Groups.DepartmentId = Departments.Id
+WHERE Departments.Name = 'Кафедра математического и компьютерного моделирования';
+
+-- 2. Вывести количество лекций, которые читает 
+-- преподаватель “Dave McQueen”.
+
+SELECT COUNT(Lectures.Id) AS 'Преподаватель'
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+WHERE Teachers.Name = 'Эльвира' AND Teachers.Surname = 'Казакова';
+
+-- 3. Вывести количество занятий, 
+-- проводимых в аудитории “D201”.
+
+SELECT COUNT(Lectures.Id) AS 'Количество занятий в аудитории'
+FROM Lectures JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+              JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+WHERE Lectures.LectureRoom = 'К022';
+
+-- 4. Вывести названия аудиторий и 
+-- количество лекций, проводимых в них.
+
+SELECT Lectures.LectureRoom, COUNT(Lectures.Id) AS 'Количество лекций'
+FROM Subjects JOIN Lectures ON Subjects.Id = Lectures.SubjectId
+GROUP BY Lectures.LectureRoom;
+
+-- 5. Вывести количество студентов, 
+-- посещающих лекции преподавателя “Jack Underhill”.
+
+SELECT COUNT(Students.Id) AS 'Количество студентов'
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+			  JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+			  JOIN Students ON Groups.Id = Students.GroupId
+WHERE Teachers.Name = 'Петр' AND Teachers.Surname = 'Мохнатов';
+
+-- 6. Вывести среднюю ставку преподавателей 
+-- факультета “Computer Science”.
+
+SELECT AVG(Teachers.Salary) AS 'Средняя ставка'
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+			  JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+			  JOIN Departments ON Groups.DepartmentId = Departments.Id
+			  JOIN Faculties ON Departments.FacultyId = Faculties.Id
+WHERE Faculties.Name = 'Факультет компьютерных наук и информационных технологий';
+
+-- 7. Вывести минимальное и максимальное 
+-- количество студентов среди всех групп.
+
+SELECT MIN(NumStud.TotStud) AS MIN, MAX(NumStud.TotStud) AS MAX
+FROM   (SELECT Groups.Name, COUNT(Students.Id) AS TotStud
+        FROM Students JOIN Groups ON Students.GroupId = Groups.Id
+        GROUP BY Groups.Name) AS NumStud;
+
+-- 8. Вывести средний фонд финансирования кафедр.
+
+SELECT AVG(Departments.Financing) AS 'Средний фонд финансирования кафедр'
+FROM Departments;
+
+-- 9. Вывести полные имена преподавателей и 
+-- количество читаемых ими дисциплин.
+
+SELECT Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель', Subjects.Name AS 'Дисциплины'
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN Subjects ON Lectures.SubjectId = Subjects.Id;
+
+-- 10. Вывести количество лекций в каждый день недели.
+
+SELECT COUNT(Lectures.Id) AS 'Количество лекций', GroupsLectures.DayOfWeek AS 'День недели'
+FROM Lectures JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+GROUP BY GroupsLectures.DayOfWeek;
+
+-- 11. Вывести номера аудиторий и количество кафедр, 
+-- чьи лекции в них читаются.
+
+SELECT Lectures.LectureRoom AS 'Номера аудиторий', COUNT(Departments.Id) AS 'Количество кафедр'
+FROM Lectures JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+              JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+			  JOIN Departments ON Groups.DepartmentId = Departments.Id
+GROUP BY Lectures.LectureRoom;
+
+-- 12. Вывести названия факультетов и количество дисциплин,
+-- которые на них читаются.
+
+SELECT Faculties.Name AS 'Факультеты', COUNT(DISTINCT Subjects.Id) AS 'Количество дисциплин'
+FROM Subjects JOIN Lectures ON Subjects.Id = Lectures.SubjectId
+              JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+			  JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+			  JOIN Departments ON Groups.DepartmentId = Departments.Id
+			  JOIN Faculties ON Departments.FacultyId = Faculties.Id
+GROUP BY Faculties.Name;
+
+-- 13. Вывести количество лекций для 
+-- каждой пары преподаватель-аудитория.
+
+SELECT Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель', Lectures.LectureRoom AS 'Аудитория', COUNT(Lectures.Id) AS 'Количество лекций'
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN Subjects ON Lectures.SubjectId = Subjects.Id
+GROUP BY Teachers.Name + ' ' + Teachers.Surname, Lectures.LectureRoom;
