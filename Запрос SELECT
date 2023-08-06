@@ -1,0 +1,94 @@
+-- 1. Соединение 2-ух столбцов.
+
+SELECT [Name] +' '+ [Surname] AS FullName,
+[EmploymentDate], [IsAssistant], [IsProfessor]
+FROM [Teachers];
+
+-- 2. Увеличение ставки на 20%.
+
+SELECT [Name] +' '+ [Surname] AS FullName,
+[Salary]*1.2 AS [Plus 20 persent]
+FROM [Teachers];
+
+-- 3. Преобразование столбца ставки при помощи CAST.
+
+SELECT 'Teachers ' + [Surname] + ' receives ' +
+CAST([Salary] AS nvarchar(10))
+FROM [Teachers];
+
+-- 4. Преобразование столбца ставки при помощи CONVERT.
+
+SELECT 'Teachers ' + [Surname] + ' receives ' +
+CONVERT(nvarchar(10), [Salary])
+FROM [Teachers];
+
+-- 5. Оператор TOP.
+
+SELECT TOP 5 [Surname], [Name], [EmploymentDate]
+FROM [Teachers];
+
+-- 6. Оператор PERCENT.
+
+SELECT TOP 40 PERCENT [Surname], [Name], [EmploymentDate]
+FROM [Teachers];
+
+-- 7. Оператор DISTINCT.
+
+SELECT DISTINCT [Name], [Surname]
+FROM [Teachers];
+
+-- 8. Оператор WHERE.
+
+SELECT [Surname], [Salary]
+FROM [Teachers]
+WHERE Salary > 1300;
+
+-- 9. Оператор WHERE, функция LEN().
+
+SELECT [Id], [EmploymentDate], [IsAssistant], [IsProfessor], [Name], 
+[Position], [Premium], [Salary], [Surname]
+FROM [Teachers]
+WHERE LEN([Name]) !> 4;
+
+-- 10. Оператор AND.
+
+SELECT [Surname], [Name], [EmploymentDate]
+FROM [Teachers]
+WHERE MONTH([EmploymentDate]) >= 9 AND MONTH([EmploymentDate]) <= 11;
+
+-- 11. Оператор OR.
+
+SELECT [Surname], [Name], [EmploymentDate]
+FROM [Teachers]
+WHERE YEAR([EmploymentDate]) % 2 = 0 OR DAY([EmploymentDate]) % 2 <> 0;
+
+-- 12. Оператор IS NULL.
+
+SELECT [Surname], [Name], [Salary]
+FROM [Teachers]
+WHERE [Salary] IS NULL;
+
+-- 13. Оператор NOT.
+
+SELECT [Id], [EmploymentDate], [IsAssistant], [IsProfessor], [Name], 
+[Position], [Premium], [Salary], [Surname]
+FROM [Teachers]
+WHERE NOT Surname = 'Внештатный';
+
+-- 14. Оператор NOT NULL.
+
+SELECT [Surname], [Name], [Salary]
+FROM [Teachers]
+WHERE Salary IS NOT NULL;
+
+-- 15. Оператор ORDER BY.
+
+SELECT [Surname], [Name], [EmploymentDate]
+FROM [Teachers]
+ORDER BY [EmploymentDate];
+
+-- 16 Оператор ORDER BY ASC|DESC.
+
+SELECT [Surname], [Name], [EmploymentDate]
+FROM [Teachers]
+ORDER BY [Surname] DESC, [Name] ASC;
