@@ -1,0 +1,101 @@
+-- 1. Вывести названия аудиторий, в которых читает лекции
+-- преподаватель “Edward Hopper”.
+
+SELECT LectureRoom.Name AS 'Аудитория'
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN Schedules ON Lectures.Id = Schedules.LectureId
+			  JOIN LectureRoom ON Schedules.LectureRoomId = LectureRoom.Id
+WHERE Teachers.Name + ' ' + Teachers.Surname = 'Алексей Штатный'
+GROUP BY LectureRoom.Name;
+
+-- 2. Вывести фамилии ассистентов, читающих лекции в группе “F505”.
+
+SELECT Teachers.Surname
+FROM Assistants JOIN Teachers ON Assistants.TeacherId = Teachers.Id
+                JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+				JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+				JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+WHERE Groups.Name = 'QA-222';
+
+--3. Вывести дисциплины, которые читает преподаватель 
+-- “Alex Carmack” для групп 5-го курса.
+
+SELECT Subjects.Name
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN Subjects ON Lectures.SubjectId = Subjects.Id
+			  JOIN GroupsLectures ON Lectures.Id = GroupsLectures.LectureId
+			  JOIN Groups ON GroupsLectures.GroupId = Groups.Id
+WHERE Teachers.Name = 'Татьяна' AND Teachers.Surname = 'Миронова' AND Groups.Year = '5';
+
+-- 4. Вывести фамилии преподавателей, которые не читают
+-- лекции по понедельникам.
+
+SELECT DISTINCT Teachers.Surname
+FROM Teachers JOIN Lectures ON Teachers.Id = Lectures.TeacherId
+              JOIN Schedules ON Lectures.TeacherId = Schedules.LectureId
+WHERE NOT Schedules.DayOfWeek = 1;
+
+-- 5. Вывести названия аудиторий, с указанием их корпусов,
+-- в которых нет лекций в среду второй недели на третьей паре.
+
+SELECT LectureRoom.Name, LectureRoom.Building
+FROM LectureRoom JOIN Schedules ON LectureRoom.Id = Schedules.LectureRoomId
+WHERE EXISTS
+            (
+             SELECT Schedules.LectureRoomId
+             FROM Schedules
+             WHERE Schedules.DayOfWeek NOT LIKE 3 AND 
+                   Schedules.Week NOT LIKE 2 AND 
+	               Schedules.Class NOT LIKE 3
+                                             );
+
+-- 6. Вывести полные имена преподавателей факультета “Computer
+-- Science”, которые не курируют группы кафедры “Software Development”.
+
+SELECT Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель'
+FROM Teachers JOIN Curators ON Teachers.Id = Curators.TeacherId
+              JOIN GroupsCurators ON Curators.Id = GroupsCurators.CuratorId
+			  JOIN Groups ON GroupsCurators.GroupId = Groups.Id
+			  JOIN Departments ON Groups.DepartmentId = Departments.Id
+			  JOIN Faculties ON Departments.FacultyId = Faculties.Id
+WHERE Faculties.Name = 'Факультет компьютерных наук и информационных технологий'
+      AND Departments.Name NOT LIKE 'Кафедра разработки программного обеспечения';
+
+-- 7. Вывести список номеров всех корпусов, которые имеются
+-- в таблицах факультетов, кафедр и аудиторий.
+
+SELECT DISTINCT 'Факультет', Building
+FROM Faculties
+UNION ALL
+SELECT DISTINCT 'Кафедра', Building
+FROM Departments
+UNION ALL
+SELECT DISTINCT 'Фудитория', Building
+FROM LectureRoom;
+
+-- 8. Вывести полные имена преподавателей в следующем по-
+-- рядке: деканы факультетов, заведующие кафедрами, 
+-- преподаватели, кураторы, ассистенты.
+
+SELECT DISTINCT 'Деканы' AS 'Должность', Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель'
+FROM Teachers JOIN Deans ON Teachers.Id = Deans.TeacherId
+UNION ALL
+SELECT DISTINCT 'Заведующие кафедрами' AS 'Должность', Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель'
+FROM Heads JOIN Departments ON Heads.Id = Departments.HeadId
+           JOIN Teachers ON Departments.Id = Teachers.Id
+UNION ALL
+SELECT DISTINCT 'Преподаватель' AS 'Должность', Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель'
+FROM Teachers
+UNION ALL
+SELECT DISTINCT 'Кураторы' AS 'Должность', Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель'
+FROM Curators JOIN Teachers ON Curators.TeacherId = Teachers.Id
+UNION ALL
+SELECT DISTINCT 'Ассистенты' AS 'Должность', Teachers.Name + ' ' + Teachers.Surname AS 'Преподаватель'
+FROM Assistants JOIN Teachers ON Assistants.TeacherId = Teachers.Id;
+
+-- 9. Вывести дни недели (без повторений), в которые имеются
+-- занятия в аудиториях “A311” и “A104” корпуса 6.
+
+SELECT DISTINCT DayOfWeek
+FROM LectureRoom JOIN Schedules ON LectureRoom.Id = Schedules.LectureRoomId
+WHERE (LectureRoom.Building = '3') AND (LectureRoom.Name IN ('Р107', 'К033'));
