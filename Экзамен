@@ -1,0 +1,145 @@
+-- 1. Показать все книги, количество страниц в которых больше
+-- 500, но меньше 650.
+
+SELECT *
+FROM Books
+WHERE Pages > 500 AND Pages < 650;
+
+-- 2. Показать все книги, в которых первая буква названия либо
+-- «А», либо «З».
+
+SELECT *
+FROM Books
+WHERE Name LIKE '[J]%' OR Name LIKE '[А]%';
+
+-- 3. Показать все книги жанра «Детектив», количество 
+-- проданных книг более 30 экземпляров.
+
+SELECT *
+FROM Themes JOIN Books ON Themes.Id = Books.ThemeId
+            JOIN Sales ON Books.Id = Sales.BookId
+WHERE Quantity > 30;
+
+-- 4. Показать все книги, в названии которых есть слово 
+-- «Microsoft», но нет слова «Windows».
+
+SELECT *
+FROM Books
+WHERE Name LIKE '%Microsoft%' AND Name NOT LIKE '%Windows%'; 
+
+-- 5. Показать все книги (название, тематика, полное имя автора
+-- в одной ячейке), цена одной страницы которых меньше 65 копеек.
+
+SELECT CONCAT(Books.Name,' ', 
+              Themes.Name,' ', 
+			  Authors.Name + ' ' + Authors.Surname) AS BooksInfo
+FROM Themes JOIN Books ON Themes.Id = Books.ThemeId
+            JOIN Authors ON Books.AuthorId = Authors.Id
+			JOIN Sales ON Authors.Id = Sales.Id
+WHERE Sales.Price / Books.Pages < 0.65;
+
+-- 6. Показать все книги, название которых состоит из 4 слов.
+
+SELECT *
+FROM Books
+WHERE Name LIKE '%[ ]%[ ]%[ ]%' AND Name NOT LIKE '%[ ]%[ ]%[ ]%[ ]%';
+
+-- 7. Показать информацию о продажах в следующем виде:
+-- 1) Название книги, но, чтобы оно не содержало букву «А».
+-- 2) Тематика, но, чтобы не «Программирование».
+-- 3) Автор, но, чтобы не «Герберт Шилдт».
+-- 4) Цена, но, чтобы в диапазоне от 10 до 20 гривен.
+-- 5) Количество продаж, но не менее 8 книг.
+-- 6) Название магазина, который продал книгу, но он не должен 
+--    быть в Украине или России.
+
+SELECT Books.Name, Themes.Name,
+       Authors.Name, Sales.Price, 
+	   Sales.Quantity, Shops.Name
+FROM Books LEFT JOIN Themes ON Books.ThemeId = Themes.Id
+                JOIN Authors ON Books.AuthorId = Authors.Id
+                JOIN Sales ON Books.Id = Sales.BookId
+                JOIN Shops ON Sales.ShopId = Shops.Id
+				JOIN Countries ON Shops.CountryId = Countries.Id
+WHERE Books.Name NOT LIKE '%А%' AND 
+      Themes.Name NOT LIKE '%Программирование%' AND
+      Authors.Name NOT LIKE 'Герберт' AND 
+	  Authors.Surname NOT LIKE 'Шилдт' AND
+      Sales.Price BETWEEN 95 AND 450 AND 
+	  Sales.Quantity >= 8 AND
+      Countries.Name NOT LIKE '%Украина%' AND 
+	  Countries.Name NOT LIKE '%Россия%';
+
+-- 8. Показать следующую информацию в два столбца (числа
+-- в правом столбце приведены в качестве примера):
+-- 1) Количество авторов: 14
+-- 2) Количество книг: 47
+-- 3) Средняя цена продажи: 85.43 грн.
+-- 4) Среднее количество страниц: 650.6.
+
+SELECT 'Количество авторов', COUNT(Id)
+FROM Authors
+UNION
+SELECT 'Количество книг', COUNT(Id)
+FROM Books
+UNION
+SELECT 'Средняя цена продажи', AVG(price)
+FROM Sales
+UNION
+SELECT 'Среднее количество страниц', AVG(pages) 
+FROM books;
+
+-- 9. Показать тематики книг и сумму страниц всех книг 
+-- по каждой из них.
+
+SELECT Themes.Name, SUM(Books.Pages) AS 'Сумма страниц'
+FROM Books JOIN Themes ON Books.ThemeId = Themes.Id
+GROUP BY Themes.Name;
+
+-- 10. Показать количество всех книг и сумму страниц 
+-- этих книг по каждому из авторов.
+
+SELECT COUNT(Books.Id), SUM(Books.Pages) AS 'Сумма страниц', Authors.Name
+FROM Books JOIN Authors ON Books.AuthorId = Authors.Id
+GROUP BY Authors.Name;
+
+-- 11. Показать книгу тематики «Программирование» 
+-- с наибольшим количеством страниц.
+
+SELECT MAX(Books.Pages), Themes.Name
+FROM Books JOIN Themes ON Books.ThemeId = Themes.id
+WHERE Themes.Name LIKE 'Программирование'
+GROUP BY Themes.Name;
+
+-- 12. Показать среднее количество страниц по каждой тематике,
+-- которое не превышает 400.
+
+SELECT AVG(Books.Pages) AS 'Среднее количество страниц', Themes.Name
+FROM Books JOIN Themes ON Books.ThemeId = Themes.id
+WHERE Books.Pages <= 400
+GROUP BY Themes.Name;
+
+-- 13. Показать сумму страниц по каждой тематике, 
+-- учитывая только книги с количеством страниц более 400, 
+-- и чтобы тематики были «Программирование», «Администрирование» и «Дизайн».
+
+SELECT SUM(Books.Pages), Themes.Name
+FROM Themes JOIN Books ON Themes.id = Books.ThemeId
+WHERE Themes.Name IN ('Программирование', 'Администрирование', 'Дизайн') AND
+      Books.Pages > 400
+GROUP BY Themes.Name;
+
+-- 14. Показать информацию о работе магазинов: что, где, кем,
+-- когда и в каком количестве было продано.
+
+SELECT Books.Name, Countries.Name, Shops.Name, Sales.SaleDate, Sales.Quantity
+FROM Books JOIN Sales ON Books.Id = Sales.BookId
+           JOIN Shops ON Sales.ShopId = Shops.Id
+		   JOIN Countries ON Shops.CountryId = Countries.Id;
+
+-- 15. Показать самый прибыльный магазин.
+
+SELECT TOP 1 SUM(Sales.Price) AS SumPrice, Shops.Name
+FROM Sales JOIN Shops ON Sales.ShopId = Shops.Id
+GROUP BY Shops.Name
+ORDER BY SUM(Sales.Price) DESC;
