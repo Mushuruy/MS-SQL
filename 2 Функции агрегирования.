@@ -1,0 +1,61 @@
+-- 1. Вывести количество палат, вместимость которых больше 10.
+
+SELECT COUNT(Wards.Id) AS 'Количество палат'
+FROM Wards
+WHERE Places > 10;
+
+-- 2. Вывести названия корпусов и количество палат в каждом из них.
+
+SELECT Departments.Building AS 'Корпус', COUNT(Wards.Id) AS 'Количество палат'
+FROM Departments LEFT JOIN Wards ON Departments.Id = Wards.DepartmentId
+GROUP BY Departments.Building;
+
+-- 3. Вывести названия отделений и количество палат в каждом из них.
+
+SELECT DISTINCT Departments.Name AS 'Отделения', Wards.Places AS 'Количество палат'
+FROM Departments JOIN Wards ON Departments.Id = Wards.DepartmentId;
+
+-- 4. Вывести названия отделений и суммарную надбавку врачей в каждом из них.
+
+SELECT Departments.Name AS 'Отделения', SUM(Doctors.Premium) AS 'Суммарная надбавка'
+FROM Departments JOIN Wards ON Departments.Id = Wards.DepartmentId
+                 JOIN DoctorsExaminations ON Wards.Id = DoctorsExaminations.WardId
+				 JOIN Doctors ON DoctorsExaminations.DoctorId = Doctors.Id
+GROUP BY Departments.Name;
+
+-- 5. Вывести названия отделений, в которых проводят обследования 5 и более врачей.
+
+SELECT Departments.Name AS 'Названия отделений', Doctors.Id AS 'Количество врачей'
+FROM Departments JOIN Wards ON Departments.Id = Wards.DepartmentId
+                 JOIN DoctorsExaminations ON Wards.Id = DoctorsExaminations.WardId
+				 JOIN Doctors ON DoctorsExaminations.DoctorId = Doctors.Id
+WHERE Doctors.Id >= 5
+GROUP BY Departments.Name, Doctors.Id;
+
+-- 6. Вывести количество врачей и их суммарную зарплату (сумма ставки и надбавки).
+ 
+SELECT SUM(Salary + Premium) AS 'Сумма всех зарплат', COUNT(Doctors.Id) AS 'Количество врачей'
+FROM Doctors;
+
+-- 7. Вывести среднюю зарплату (сумма ставки и надбавки) врачей.
+
+SELECT AVG(TotSal.SumSal) AS 'Средняя зарплата всех врачей'
+FROM (SELECT Doctors.Id, SUM(Salary + Premium) AS SumSal
+      FROM Doctors
+	  GROUP BY Doctors.Id) AS TotSal;
+
+-- 8. Вывести названия палат с минимальной вместительностью.
+
+SELECT Name
+FROM Wards
+WHERE Places = (SELECT MIN(Places) FROM Wards);
+
+-- 9. Вывести в каких из корпусов 1, 6, 7 и 8, суммарное количество мест 
+-- в палатах превышает 100. При этом учитывать только палаты с количеством мест 
+-- больше 10.
+
+SELECT SUM(Wards.Places) AS SP, Departments.Name, Wards.Name
+FROM Departments JOIN Wards ON Departments.Id = Wards.DepartmentId
+WHERE Departments.Building IN (1, 3, 4, 5) AND Wards.Places > 10
+GROUP BY Departments.Name, Wards.Name
+HAVING SUM(Wards.Places) > 100;
